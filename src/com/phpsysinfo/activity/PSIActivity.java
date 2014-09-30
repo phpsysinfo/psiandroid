@@ -336,6 +336,41 @@ implements OnClickListener, View.OnTouchListener, OnNavigationListener
 			findViewById(R.id.trMachine).setVisibility(LinearLayout.GONE);
 		}
 		
+		//processes
+		if(entry.getProcesses() != -1) {
+			TextView txtProcesses = (TextView) findViewById(R.id.txtProcesses);
+			txtProcesses.setText(entry.getProcesses()+"");
+			findViewById(R.id.trProcesses).setVisibility(LinearLayout.VISIBLE);
+		}
+		else {
+			findViewById(R.id.trProcesses).setVisibility(LinearLayout.GONE);
+		}
+		
+		if(entry.getProcessesRunning() != -1) {
+			TextView txtProcesses = (TextView) findViewById(R.id.txtProcesses);
+			
+			txtProcesses.append(" ("+
+					entry.getProcessesRunning() + "\u00A0" + getString(R.string.lblProcessesRunning));
+			
+			if(entry.getProcessesSleeping() != -1 && entry.getProcessesSleeping() != 0) {
+				txtProcesses.append(", " + entry.getProcessesSleeping() + "\u00A0" + getString(R.string.lblProcessesSleeping));
+			}
+			
+			if(entry.getProcessesStopped() != -1 && entry.getProcessesStopped() != 0 ) {
+				txtProcesses.append(", " + entry.getProcessesStopped() + "\u00A0" + getString(R.string.lblProcessesStopped));
+			}
+			
+			if(entry.getProcessesZombie() != -1 && entry.getProcessesZombie() != 0) {
+				txtProcesses.append(", " +  entry.getProcessesZombie() + "\u00A0" + getString(R.string.lblProcessesZombie));
+			}
+			
+			if(entry.getProcessesOther() != -1 && entry.getProcessesOther() != 0) {
+				txtProcesses.append(", " +  entry.getProcessesOther() + "\u00A0" + getString(R.string.lblProcessesOther));
+			}
+			
+			txtProcesses.append(")");
+		}
+		
 		//uptime
 		TextView txtUptime = (TextView) findViewById(R.id.txtUptime);
 		txtUptime.setText(entry.getUptime());

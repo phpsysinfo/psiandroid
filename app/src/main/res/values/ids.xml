@@ -1,8 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
     <resources>
         <item type="id" name="tvTemperature"/>
         <item type="id" name="llTemperature"/>
         <item type="id" name="tTemperature"/>
+        <item type="id" name="tvVoltage"/>
+        <item type="id" name="llVoltage"/>
+        <item type="id" name="tVoltage"/>
         <item type="id" name="tvNetwork"/>
         <item type="id" name="llNetwork"/>
         <item type="id" name="tNetwork"/>

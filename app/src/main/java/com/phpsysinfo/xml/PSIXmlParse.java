@@ -11,6 +11,7 @@ public class PSIXmlParse extends DefaultHandler {
 
 	private boolean inPluginImpi = false;
 	private boolean inPluginImpiTemperature = false;
+	private boolean inPluginImpiVoltage = false;
 
 	private boolean inMbInfo = false;
 	private boolean inMbInfoTemperature = false;
@@ -159,11 +160,14 @@ public class PSIXmlParse extends DefaultHandler {
 		}
 
 		//ipmi
-		else if (localName.equalsIgnoreCase("Plugin_ipmi")){
+		else if (localName.equalsIgnoreCase("Plugin_ipmi") || localName.equalsIgnoreCase("Plugin_ipmiinfo")){
 			inPluginImpi = true;
 		}
-		else if (inPluginImpi && localName.equalsIgnoreCase("Temperature")){
+		else if ((inPluginImpi && localName.equalsIgnoreCase("Temperature")) || inPluginImpi && localName.equalsIgnoreCase("Temperatures")){
 			inPluginImpiTemperature = true;
+		}
+		else if ((inPluginImpi && localName.equalsIgnoreCase("Voltages"))){
+			inPluginImpiVoltage = true;
 		}
 		else if (inPluginImpiTemperature){
 			if(localName.equalsIgnoreCase("Item")) {
@@ -171,6 +175,13 @@ public class PSIXmlParse extends DefaultHandler {
 				String temp = attributes.getValue("Value");
 				String max = attributes.getValue("Max");
 				this.entry.addTemperature(desc, temp, max);
+			}
+		}
+		else if (inPluginImpiVoltage){
+			if(localName.equalsIgnoreCase("Item")) {
+				String desc = attributes.getValue("Label");
+				String value = attributes.getValue("Value");
+				this.entry.addVoltage(desc, value);
 			}
 		}
 
@@ -329,26 +340,28 @@ public class PSIXmlParse extends DefaultHandler {
 		}
 
 		if(inSecurityUpdate) {
-			buffer.append(ch, start, length);
+            buffer.append(ch, start, length);
 		}
 	}
 
 	@Override
 	public void endElement(String uri, String localName, String name) throws SAXException {
-		if (localName.equalsIgnoreCase("Plugin_ipmi")){
+		if (localName.equalsIgnoreCase("Plugin_ipmi") || localName.equalsIgnoreCase("Plugin_ipmiinfo")){
 			inPluginImpi = false;
 		}
 		else if(localName.equalsIgnoreCase("MBInfo")) {
 			inMbInfo = false;
 		}
-		else if(localName.equalsIgnoreCase("Temperature")){
+		else if(localName.equalsIgnoreCase("Temperature") || localName.equalsIgnoreCase("Temperatures")){
 			inPluginImpiTemperature = false;
 			inMbInfoTemperature = false;
 		}
+		else if(localName.equalsIgnoreCase("Voltages")){
+			inPluginImpiVoltage = false;
+		}
 		else if(localName.equalsIgnoreCase("Fans")){
 			inMbInfoFans = false;
-		}
-		else if(localName.equalsIgnoreCase("Plugin_PSStatus")){
+		} else if (localName.equalsIgnoreCase("Plugin_PSStatus")){
 			inPsStatus = false;
 		}
 		else if(localName.equals("disk")){
@@ -362,7 +375,7 @@ public class PSIXmlParse extends DefaultHandler {
 			try {
 				entry.setNormalUpdate(Integer.parseInt(buffer.toString().trim()));
 			}
-			catch(Exception e) {
+			catch (Exception e) {
 				entry.setNormalUpdate(-1);
 			}
 		}

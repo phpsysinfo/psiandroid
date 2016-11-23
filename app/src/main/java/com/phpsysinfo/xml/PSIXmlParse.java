@@ -30,6 +30,8 @@ public class PSIXmlParse extends DefaultHandler {
 
 	private PSIRaid currentRaid = null;
 
+	private boolean inUprecords = false;
+
 	private StringBuilder buffer = new StringBuilder();
 
 	@Override
@@ -156,7 +158,9 @@ public class PSIXmlParse extends DefaultHandler {
 					attributes.getValue("RxBytes"),
 					attributes.getValue("TxBytes"),
 					attributes.getValue("Err"),
-					attributes.getValue("Drops"));
+					attributes.getValue("Drops"),
+					attributes.getValue("Info")
+			);
 		}
 
 		//ipmi
@@ -318,15 +322,35 @@ public class PSIXmlParse extends DefaultHandler {
 		}
 		else if(localName.equalsIgnoreCase("Bat")){
 			String dc = attributes.getValue("DesignCapacity");
+			String fc = attributes.getValue("FullCapacity");
 			String rc = attributes.getValue("RemainingCapacity");
 			String c = attributes.getValue("Capacity");
 			String cs = attributes.getValue("ChargingState");
 
-			PSIBat bat = new PSIBat(dc, rc, c, cs);
+			PSIBat bat = new PSIBat(dc, fc, rc, c, cs);
 			this.entry.setBat(bat);
 		}
 		else if (localName.equalsIgnoreCase("Hardware")){
 			this.entry.setMachine(attributes.getValue("Name"));
+		}
+		else if (localName.equalsIgnoreCase("Uprecords")){
+			this.inUprecords = true;
+		}
+		else if (inUprecords && localName.equalsIgnoreCase("Item")){
+
+			String key = attributes.getValue("hash");
+			if(key.equals("1") || key.equals("-&gt; 1")) {
+				this.entry.getUprecords().setUptime(attributes.getValue("Uptime"));
+			}
+			else if(key.equals("up")) {
+				this.entry.getUprecords().setUp(attributes.getValue("Uptime"));
+			}
+			else if(key.equals("down")) {
+				this.entry.getUprecords().setDown(attributes.getValue("Uptime"));
+			}
+			else if(key.equals("%up")) {
+				this.entry.getUprecords().setPercent(attributes.getValue("Uptime"));
+			}
 		}
 	}
 
@@ -387,6 +411,9 @@ public class PSIXmlParse extends DefaultHandler {
 			catch(Exception e) {
 				entry.setSecurityUpdate(-1);
 			}
+		}
+		else if(localName.equalsIgnoreCase("Uprecords")) {
+			inUprecords = false;
 		}
 	}
 

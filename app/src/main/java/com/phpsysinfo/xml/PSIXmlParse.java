@@ -309,7 +309,9 @@ public class PSIXmlParse extends DefaultHandler {
 			PSIRaidDevice psiRaidDevice = new PSIRaidDevice(
 					attributes.getValue("Name"),
 					attributes.getValue("Status"));
-			currentRaid.addDevices(psiRaidDevice);
+			if(psiRaidDevice != null) {
+				currentRaid.addDevices(psiRaidDevice);
+			}
 		}
 		else if(localName.equalsIgnoreCase("packages")){
 			inPackageUpdate = true;

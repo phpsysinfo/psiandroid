@@ -1,5 +1,7 @@
 package com.phpsysinfo.xml;
 
+import android.util.Log;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -31,6 +33,7 @@ public class PSIXmlParse extends DefaultHandler {
 
 	private PSIRaid currentRaid = null;
 
+	private boolean inUpsrecords = false;
 	private boolean inUprecords = false;
 
 	private StringBuilder buffer = new StringBuilder();
@@ -53,6 +56,8 @@ public class PSIXmlParse extends DefaultHandler {
 	public void startElement(String uri, String localName, String name,	Attributes attributes) 
 			throws SAXException {
 
+		Log.d("DEBUG",localName);
+
 		if (localName.equalsIgnoreCase("Vitals")){
 			this.entry.setHostname(attributes.getValue("Hostname"));
 			this.entry.setUptime(attributes.getValue("Uptime"));
@@ -67,50 +72,88 @@ public class PSIXmlParse extends DefaultHandler {
 				int cpuLoad = (int) Double.parseDouble(attributes.getValue("CPULoad"));
 				this.entry.setCpuUsage(cpuLoad);
 			}
-			catch(Exception e) {}
+			catch(Exception e) {
+				Log.d("DEBUG",e.toString());
+			}
 
 			try {
 				int processes = (int) Integer.parseInt(attributes.getValue("Processes"));
 				this.entry.setProcesses(processes);
 			}
-			catch(Exception e) {}
+			catch(Exception e) {
+				Log.d("DEBUG",e.toString());
+			}
 
 			try {
 				int processesRunning = (int) Integer.parseInt(attributes.getValue("ProcessesRunning"));
 				this.entry.setProcessesRunning(processesRunning);
 			}
-			catch(Exception e) {}
+			catch(Exception e) {
+				Log.d("DEBUG",e.toString());
+			}
 
 			try {
 				int processesSleeping = (int) Integer.parseInt(attributes.getValue("ProcessesSleeping"));
 				this.entry.setProcessesSleeping(processesSleeping);
 			}
-			catch(Exception e) {}
+			catch(Exception e) {
+				Log.d("DEBUG",e.toString());
+			}
 
 			try {
 				int processesStopped = (int) Integer.parseInt(attributes.getValue("ProcessesStopped"));
 				this.entry.setProcessesStopped(processesStopped);
 			}
-			catch(Exception e) {}
+			catch(Exception e) {
+				Log.d("DEBUG",e.toString());
+			}
 
 			try {
 				int processesZombie = (int) Integer.parseInt(attributes.getValue("ProcessesZombie"));
 				this.entry.setProcessesZombie(processesZombie);
 			}
-			catch(Exception e) {}
+			catch(Exception e) {
+				Log.d("DEBUG",e.toString());
+			}
 
 			try {
 				int processesWaiting = (int) Integer.parseInt(attributes.getValue("ProcessesWaiting"));
 				this.entry.setProcessesWaiting(processesWaiting);
 			}
-			catch(Exception e) {}	
+			catch(Exception e) {
+				Log.d("DEBUG",e.toString());
+			}
 			
 			try {
 				int processesOther = (int) Integer.parseInt(attributes.getValue("ProcessesOther"));
 				this.entry.setProcessesOther(processesOther);
 			}
-			catch(Exception e) {}	
+			catch(Exception e) {
+				Log.d("DEBUG",e.toString());
+			}
 		}
+        else if(localName.equalsIgnoreCase("UPSInfo")) {
+            inUpsrecords = true;
+        }
+        else if(inUpsrecords && localName.equalsIgnoreCase("UPS")) {
+            PSIUps ups = new PSIUps();
+            ups.setName(attributes.getValue("Name"));
+            ups.setModel(attributes.getValue("Model"));
+            ups.setMode(attributes.getValue("Mode"));
+            ups.setStartTime(attributes.getValue("StartTime"));
+            ups.setStatus(attributes.getValue("Status"));
+            ups.setTemperature(attributes.getValue("Temperature"));
+            ups.setOutagesCount(attributes.getValue("OutagesCount"));
+            ups.setLastOutage(attributes.getValue("LastOutage"));
+            ups.setLastOutageFinish(attributes.getValue("LastOutageFinish"));
+            ups.setLineVoltage(attributes.getValue("LineVoltage"));
+            ups.setLoadPercent(attributes.getValue("LoadPercent"));
+            ups.setBatteryVoltage(attributes.getValue("BatteryVoltage"));
+            ups.setBatteryChargePercent(attributes.getValue("BatteryChargePercent"));
+            ups.setTimeLeftMinutes(attributes.getValue("TimeLeftMinutes"));
+
+            this.entry.addUps(ups);
+        }
 		else if (localName.equalsIgnoreCase("Memory")){
 			this.entry.setAppMemoryTotal(attributes.getValue("Total"));
 			this.entry.setAppMemoryPercent(attributes.getValue("Percent"));
@@ -164,63 +207,7 @@ public class PSIXmlParse extends DefaultHandler {
 			);
 		}
 
-		//ipmi
-		else if (localName.equalsIgnoreCase("Plugin_ipmi") || localName.equalsIgnoreCase("Plugin_ipmiinfo")){
-			inPluginImpi = true;
-		}
-		else if ((inPluginImpi && localName.equalsIgnoreCase("Temperature")) || inPluginImpi && localName.equalsIgnoreCase("Temperatures")){
-			inPluginImpiTemperature = true;
-		}
-		else if ((inPluginImpi && localName.equalsIgnoreCase("Voltage")) || inPluginImpi && localName.equalsIgnoreCase("Voltages")){
-			inPluginImpiVoltage = true;
-		}
-		else if (inPluginImpiTemperature){
-			if(localName.equalsIgnoreCase("Item")) {
-				String desc = attributes.getValue("Label");
-				String temp = attributes.getValue("Value");
-				String max = attributes.getValue("Max");
-				this.entry.addTemperature(desc, temp, max);
-			}
-		}
-		else if (inPluginImpiVoltage){
-			if(localName.equalsIgnoreCase("Item")) {
-				String desc = attributes.getValue("Label");
-				String value = attributes.getValue("Value");
-				this.entry.addVoltage(desc, value);
-			}
-		}
 
-		//mb
-		else if (localName.equalsIgnoreCase("MBInfo")){
-			inMbInfo = true;
-		}
-		else if (inMbInfo && localName.equalsIgnoreCase("Temperature")){
-			inMbInfoTemperature = true;
-		}
-		else if (inMbInfo && localName.equalsIgnoreCase("Fans")){
-			inMbInfoFans = true;
-		}
-		else if (inMbInfo && localName.equalsIgnoreCase("Voltage")){
-			inMbInfoVoltage = true;
-		}
-		else if (inMbInfoTemperature){
-			if(localName.equalsIgnoreCase("Item")) {
-				String desc = attributes.getValue("Label");
-				String temp = attributes.getValue("Value");
-				String max = attributes.getValue("Max");
-				this.entry.addTemperature(desc, temp, max);
-			}
-		}
-		else if (inMbInfoFans){
-			if(localName.equalsIgnoreCase("Item")) {
-				this.entry.addFans(attributes.getValue("Label"), attributes.getValue("Value"));
-			}
-		}
-		else if (inMbInfoVoltage){
-			if(localName.equalsIgnoreCase("Item")) {
-				this.entry.addVoltage(attributes.getValue("Label"), attributes.getValue("Value"));
-			}
-		}
 
 		//process status
 		else if (localName.equalsIgnoreCase("Plugin_PSStatus")){
@@ -273,28 +260,6 @@ public class PSIXmlParse extends DefaultHandler {
 
 				this.entry.addSmart(new PSISmart(currentDisk, attr, value));
 			}
-		}
-
-		else if(localName.equalsIgnoreCase("UPS")){
-
-			PSIUps ups = new PSIUps();
-
-			ups.setName(attributes.getValue("Name"));
-			ups.setModel(attributes.getValue("Model"));
-			ups.setMode(attributes.getValue("Mode"));
-			ups.setStartTime(attributes.getValue("StartTime"));
-			ups.setStatus(attributes.getValue("Status"));
-			ups.setTemperature(attributes.getValue("Temperature"));
-			ups.setOutagesCount(attributes.getValue("OutagesCount"));
-			ups.setLastOutage(attributes.getValue("LastOutage"));
-			ups.setLastOutageFinish(attributes.getValue("LastOutageFinish"));
-			ups.setLineVoltage(attributes.getValue("LineVoltage"));
-			ups.setLoadPercent(attributes.getValue("LoadPercent"));
-			ups.setBatteryVoltage(attributes.getValue("BatteryVoltage"));
-			ups.setBatteryChargePercent(attributes.getValue("BatteryChargePercent"));
-			ups.setTimeLeftMinutes(attributes.getValue("TimeLeftMinutes"));
-
-			this.entry.addUps(ups);
 		}
 
 		else if(localName.equalsIgnoreCase("Raid")){
@@ -363,6 +328,63 @@ public class PSIXmlParse extends DefaultHandler {
 				this.entry.getUprecords().setPercent(attributes.getValue("Uptime"));
 			}
 		}
+        //ipmi
+        else if (localName.equalsIgnoreCase("Plugin_ipmi") || localName.equalsIgnoreCase("Plugin_ipmiinfo")){
+            inPluginImpi = true;
+        }
+        else if ((inPluginImpi && localName.equalsIgnoreCase("Temperature")) || inPluginImpi && localName.equalsIgnoreCase("Temperatures")){
+            inPluginImpiTemperature = true;
+        }
+        else if ((inPluginImpi && localName.equalsIgnoreCase("Voltage")) || inPluginImpi && localName.equalsIgnoreCase("Voltages")){
+            inPluginImpiVoltage = true;
+        }
+        else if (inPluginImpiTemperature){
+            if(localName.equalsIgnoreCase("Item")) {
+                String desc = attributes.getValue("Label");
+                String temp = attributes.getValue("Value");
+                String max = attributes.getValue("Max");
+                this.entry.addTemperature(desc, temp, max);
+            }
+        }
+        else if (inPluginImpiVoltage){
+            if(localName.equalsIgnoreCase("Item")) {
+                String desc = attributes.getValue("Label");
+                String value = attributes.getValue("Value");
+                this.entry.addVoltage(desc, value);
+            }
+        }
+
+        //mb
+        else if (localName.equalsIgnoreCase("MBInfo")){
+            inMbInfo = true;
+        }
+        else if (inMbInfo && localName.equalsIgnoreCase("Temperature")){
+            inMbInfoTemperature = true;
+        }
+        else if (inMbInfo && localName.equalsIgnoreCase("Fans")){
+            inMbInfoFans = true;
+        }
+        else if (inMbInfo && localName.equalsIgnoreCase("Voltage")){
+            inMbInfoVoltage = true;
+        }
+        else if (inMbInfoTemperature){
+            if(localName.equalsIgnoreCase("Item")) {
+                String desc = attributes.getValue("Label");
+                String temp = attributes.getValue("Value");
+                String max = attributes.getValue("Max");
+                this.entry.addTemperature(desc, temp, max);
+            }
+        }
+        else if (inMbInfoFans){
+            if(localName.equalsIgnoreCase("Item")) {
+                this.entry.addFans(attributes.getValue("Label"), attributes.getValue("Value"));
+            }
+        }
+        else if (inMbInfoVoltage){
+            if(localName.equalsIgnoreCase("Item")) {
+                this.entry.addVoltage(attributes.getValue("Label"), attributes.getValue("Value"));
+            }
+        }
 	}
 
 	@Override
@@ -393,6 +415,7 @@ public class PSIXmlParse extends DefaultHandler {
 		}
 		else if(localName.equalsIgnoreCase("Voltage") || localName.equalsIgnoreCase("Voltages")){
 			inPluginImpiVoltage = false;
+			inMbInfoVoltage = false;
 		}
 		else if(localName.equalsIgnoreCase("Fans")){
 			inMbInfoFans = false;
@@ -401,6 +424,9 @@ public class PSIXmlParse extends DefaultHandler {
 		}
 		else if(localName.equals("disk")){
 			inDisk = false;
+		}
+		else if(localName.equalsIgnoreCase("UPSInfo")){
+			inUpsrecords = false;
 		}
 		else if(localName.equalsIgnoreCase("Printer")){
 			inPrinter = false;

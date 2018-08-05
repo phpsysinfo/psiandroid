@@ -33,6 +33,8 @@ public class PSIXmlParse extends DefaultHandler {
 
 	private boolean inUprecords = false;
 
+	private boolean inRaid = false;
+
 	private StringBuilder buffer = new StringBuilder();
 
 	@Override
@@ -313,13 +315,16 @@ public class PSIXmlParse extends DefaultHandler {
 			}
 
 			this.entry.addRaid(currentRaid);
+			this.inRaid = true;
 		}
-		else if(localName.equals("Disk")){
-			PSIRaidDevice psiRaidDevice = new PSIRaidDevice(
-					attributes.getValue("Name"),
-					attributes.getValue("Status"));
-			if(psiRaidDevice != null) {
-				currentRaid.addDevices(psiRaidDevice);
+		else if(inRaid && (localName.equals("Disk") || localName.equals("Item"))){
+			if(localName.equals("Disk") || ((attributes.getValue("Type") != null) && attributes.getValue("Type").equals("disk"))){
+				PSIRaidDevice psiRaidDevice = new PSIRaidDevice(
+						attributes.getValue("Name"),
+						attributes.getValue("Status"));
+				if (psiRaidDevice != null) {
+					currentRaid.addDevices(psiRaidDevice);
+				}
 			}
 		}
 		else if(localName.equalsIgnoreCase("packages")){
@@ -422,6 +427,9 @@ public class PSIXmlParse extends DefaultHandler {
 			catch(Exception e) {
 				entry.setSecurityUpdate(-1);
 			}
+		}
+		else if(localName.equalsIgnoreCase("Raid")) {
+			this.inRaid = false;
 		}
 		else if(localName.equalsIgnoreCase("Uprecords")) {
 			inUprecords = false;

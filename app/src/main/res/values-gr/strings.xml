@@ -63,7 +63,7 @@
     <string name="lblUpsBattery">Τάση μπαταρίας</string>
     <string name="lblUpsLine">Τάση γραμμής</string>
     
-    <string name="lblSmart">SMART</string>
+    <string name="lblSmart">S.M.A.R.T.</string>
     
     <string name="lblRaid">RAID</string>
     
@@ -85,8 +85,8 @@
     <string name="lblPreference">Ρυθμίσεις</string>
     <string name="autorefresh_title">Αυτόματη Ανανέωση</string> 
     <string name="autorefresh_sum">Μεσοδιάστημα αυτόματης ανανέωσης (δευτερόλεπτα)</string>
-    <string name="timeout_title">HTTP timeout</string>
-    <string name="timeout_sum">HTTP timeout (δευτερόλεπτα)</string>
+    <string name="timeout_title">Χρονικό όριο HTTP</string>
+    <string name="timeout_sum">Λήξη χρονικού ορίου HTTP (δευτερόλεπτα)</string>
 
     <string name="pref_swipe_title">Απενεργοποίηση Swipe</string> 
     <string name="pref_swipe_sum">Απενεργοποίηση χρήσης Swipe για αλλαγή διακομιστή</string> 
